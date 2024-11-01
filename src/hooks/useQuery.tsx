@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -17,6 +16,7 @@ export const useQuery = <T,>({
   const [data, setData] = useState<T>(initialData);
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
+  const [error, setError] = useState<unknown>(null);
 
   useEffect(() => {
     let didCancel = false;
@@ -25,10 +25,15 @@ export const useQuery = <T,>({
       setIsLoading(true);
       try {
         const result = await queryFn();
-        setData(result);
-      } catch (error) {
-        console.error(error);
-        setIsError(true);
+        if (!didCancel) {
+          setData(result);
+        }
+      } catch (err) {
+        if (!didCancel) {
+          setIsError(true);
+          setError(err);
+          console.error(err);
+        }
       }
       setIsLoading(false);
     };
@@ -38,5 +43,5 @@ export const useQuery = <T,>({
     };
   }, [...queryKey]);
 
-  return { data, isLoading, isError };
+  return { data, isLoading, isError, error };
 };
